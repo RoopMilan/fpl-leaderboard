@@ -1,13 +1,19 @@
-
 export default async function handler(req, res) {
-  const { url } = req.query;
-  if (!url) return res.status(400).json({ error: "Missing url query param" });
+  const target = req.query.url;
+  if (!target) {
+    return res.status(400).json({ error: "Missing URL param" });
+  }
 
   try {
-    const response = await fetch(decodeURIComponent(url));
+    const response = await fetch(target, {
+      headers: {
+        "User-Agent": "Mozilla/5.0"
+      }
+    });
     const data = await response.json();
-    res.status(200).json(data);
+    res.setHeader("Cache-Control", "s-maxage=60, stale-while-revalidate");
+    return res.status(200).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Fetch failed' });
+    return res.status(500).json({ error: "Fetch failed", detail: error.toString() });
   }
 }
