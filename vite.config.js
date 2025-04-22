@@ -1,7 +1,1 @@
-export default {
-  server: {
-    proxy: {
-      "/api": "http://localhost:5173"
-    }
-  }
-}
+export default { root: ".", server: { port: 3000 } };
