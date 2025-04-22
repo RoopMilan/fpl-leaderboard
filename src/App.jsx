@@ -1,24 +1,21 @@
 
-// Minimal working version
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from 'react';
 
-export default function App() {
+function App() {
   const [eventId, setEventId] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchBootstrapData = async () => {
-      try {
-        const res = await fetch(`/api/proxy?url=${encodeURIComponent("https://fantasy.premierleague.com/api/bootstrap-static/")}`);
-        const data = await res.json();
+    fetch('/api/proxy?url=https://fantasy.premierleague.com/api/bootstrap-static/')
+      .then(res => res.json())
+      .then(data => {
         const current = data.events.find(e => e.is_current);
-        setEventId(current?.id || "N/A");
-      } catch (err) {
-        setError("Failed to load leaderboard data");
-        console.error("Failed to load bootstrap data:", err);
-      }
-    };
-    fetchBootstrapData();
+        setEventId(current ? current.id : 'Unknown');
+      })
+      .catch(err => {
+        console.error("Failed to load leaderboard data:", err);
+        setError("Failed to load data");
+      });
   }, []);
 
   return (
@@ -28,3 +25,5 @@ export default function App() {
     </div>
   );
 }
+
+export default App;
