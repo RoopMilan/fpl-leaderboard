@@ -1,39 +1,30 @@
+
+// Minimal working version
 import React, { useEffect, useState } from "react";
 
-function App() {
+export default function App() {
   const [eventId, setEventId] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchBootstrapData = async () => {
       try {
-        const proxyUrl = "/api/proxy?url=";
-        const targetUrl = encodeURIComponent("https://fantasy.premierleague.com/api/bootstrap-static/");
-        const response = await fetch(`${proxyUrl}${targetUrl}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch data");
-        }
-        const data = await response.json();
-        const current = data.events.find((e) => e.is_current);
-        if (current) {
-          setEventId(current.id);
-        } else {
-          setError("No current gameweek found.");
-        }
+        const res = await fetch(`/api/proxy?url=${encodeURIComponent("https://fantasy.premierleague.com/api/bootstrap-static/")}`);
+        const data = await res.json();
+        const current = data.events.find(e => e.is_current);
+        setEventId(current?.id || "N/A");
       } catch (err) {
+        setError("Failed to load leaderboard data");
         console.error("Failed to load bootstrap data:", err);
-        setError("Failed to load event data. Please check your connection or try again later.");
       }
     };
-    fetchEvents();
+    fetchBootstrapData();
   }, []);
 
   return (
-    <div style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
+    <div>
       <h1>FPL Leaderboard</h1>
-      {error ? <p style={{ color: "red" }}>{error}</p> : <p>Current Gameweek: {eventId}</p>}
+      {error ? <p style={{ color: 'red' }}>{error}</p> : <p>Current Gameweek: {eventId}</p>}
     </div>
   );
 }
-
-export default App;

@@ -1,13 +1,13 @@
+
+// Serverless function for Vercel to proxy API requests
 export default async function handler(req, res) {
-  const target = req.query.url;
-  if (!target) {
-    return res.status(400).json({ error: "Missing URL" });
-  }
+  const { url } = req.query;
+  if (!url) return res.status(400).json({ error: 'URL is required' });
   try {
-    const response = await fetch(decodeURIComponent(target));
+    const response = await fetch(decodeURIComponent(url));
     const data = await response.json();
     res.status(200).json(data);
-  } catch (e) {
-    res.status(500).json({ error: "Failed to fetch target URL" });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch data' });
   }
 }
