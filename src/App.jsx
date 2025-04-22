@@ -5,20 +5,18 @@ function App() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchBootstrapData = async () => {
+    const fetchBootstrap = async () => {
       try {
-        const proxyUrl = "/api/proxy?url=" + encodeURIComponent("https://fantasy.premierleague.com/api/bootstrap-static/");
-        const response = await fetch(proxyUrl);
-        const data = await response.json();
-        const currentEvent = data.events.find(e => e.is_current);
-        setEventId(currentEvent?.id || "N/A");
+        const res = await fetch("/api/proxy?url=" + encodeURIComponent("https://fantasy.premierleague.com/api/bootstrap-static/"));
+        const data = await res.json();
+        const current = data.events.find(e => e.is_current);
+        setEventId(current?.id);
       } catch (err) {
-        console.error("Failed to load leaderboard data:", err);
+        console.error("Failed to load bootstrap data:", err);
         setError("Failed to load leaderboard data");
       }
     };
-
-    fetchBootstrapData();
+    fetchBootstrap();
   }, []);
 
   return (

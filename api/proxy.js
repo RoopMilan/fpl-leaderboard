@@ -1,16 +1,16 @@
 export default async function handler(req, res) {
-  const { url } = req.query;
-  if (!url) {
-    return res.status(400).json({ error: "Missing URL parameter" });
+  const targetUrl = req.query.url;
+  if (!targetUrl) {
+    res.status(400).json({ error: "Missing target URL" });
+    return;
   }
 
   try {
-    const response = await fetch(url);
-    const data = await response.text();
-    res.setHeader('Content-Type', 'application/json');
-    res.status(200).send(data);
+    const response = await fetch(targetUrl);
+    const data = await response.json();
+    res.status(200).json(data);
   } catch (error) {
     console.error("Proxy error:", error);
-    res.status(500).json({ error: "Proxy fetch failed" });
+    res.status(500).json({ error: "Failed to fetch data" });
   }
 }
