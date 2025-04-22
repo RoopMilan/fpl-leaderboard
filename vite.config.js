@@ -1,1 +1,5 @@
-export default { resolve: { alias: { '@': '/src' } } };
+export default {
+  server: {
+    port: 5173
+  }
+};
