@@ -1,78 +1,70 @@
 
 import React, { useEffect, useState } from "react";
 
-const App = () => {
+function App() {
+  const [league, setLeague] = useState([]);
   const [eventId, setEventId] = useState(null);
-  const [standings, setStandings] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchGameweek = async () => {
+    const fetchGameweekAndLeague = async () => {
       try {
-        const res = await fetch("/api/proxy?url=https%3A%2F%2Ffantasy.premierleague.com%2Fapi%2Fbootstrap-static%2F");
-        const data = await res.json();
-        const currentGW = data.events.find(e => e.is_current);
-        setEventId(currentGW?.id || "N/A");
+        // Fetch current gameweek
+        const bootstrapRes = await fetch("/api/proxy?url=https://fantasy.premierleague.com/api/bootstrap-static/");
+        const bootstrapData = await bootstrapRes.json();
+        const currentEvent = bootstrapData.events.find(e => e.is_current);
+        if (currentEvent) {
+          setEventId(currentEvent.id);
+        } else {
+          throw new Error("No current gameweek found.");
+        }
+
+        // Fetch league standings
+        const leagueId = 363676;
+        const leagueRes = await fetch(`/api/proxy?url=https://fantasy.premierleague.com/api/leagues-classic/${leagueId}/standings/`);
+        const leagueData = await leagueRes.json();
+        setLeague(leagueData.standings.results);
       } catch (err) {
-        console.error("Failed to fetch gameweek data", err);
-        setError("Failed to fetch gameweek");
+        console.error("Failed to load leaderboard data:", err);
+        setError("Failed to load leaderboard data. Please try again later.");
       }
     };
-
-    const fetchLeagueData = async () => {
-      try {
-        const res = await fetch("/api/proxy?url=https%3A%2F%2Ffantasy.premierleague.com%2Fapi%2Fleagues-classic%2F314%2Fstandings%2F");
-        const data = await res.json();
-        setStandings(data.standings.results || []);
-      } catch (err) {
-        console.error("Failed to fetch league data", err);
-        setError("Failed to fetch leaderboard");
-      }
-    };
-
-    fetchGameweek();
-    fetchLeagueData();
+    fetchGameweekAndLeague();
   }, []);
 
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>FPL Leaderboard</h1>
-      {error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : (
-        <p>Current Gameweek: {eventId}</p>
-      )}
-
-      {standings.length > 0 ? (
-        <table border="1" cellPadding="10" style={{ marginTop: "1rem", borderCollapse: "collapse" }}>
-          <thead>
+    <div className="p-4 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold text-center mb-4">FPL Leaderboard</h1>
+      {error && <p className="text-red-500 text-center">{error}</p>}
+      {eventId && <p className="text-center mb-4">Current Gameweek: {eventId}</p>}
+      <div className="overflow-x-auto">
+        <table className="min-w-full border border-gray-200">
+          <thead className="bg-gray-100 text-sm font-semibold text-gray-700">
             <tr>
-              <th>#</th>
-              <th>Manager</th>
-              <th>Team</th>
-              <th>GW Points</th>
-              <th>Total</th>
-              <th>Rank</th>
+              <th className="border px-2 py-1">#</th>
+              <th className="border px-2 py-1">Manager</th>
+              <th className="border px-2 py-1">Team</th>
+              <th className="border px-2 py-1">GW Points</th>
+              <th className="border px-2 py-1">Total</th>
+              <th className="border px-2 py-1">Rank</th>
             </tr>
           </thead>
-          <tbody>
-            {standings.map((m, i) => (
+          <tbody className="text-sm text-center">
+            {league.map((m, idx) => (
               <tr key={m.entry}>
-                <td>{i + 1}</td>
-                <td>{m.player_name}</td>
-                <td>{m.entry_name}</td>
-                <td>{m.event_total}</td>
-                <td>{m.total}</td>
-                <td>{m.rank}</td>
+                <td className="border px-2 py-1">{idx + 1}</td>
+                <td className="border px-2 py-1">{m.player_name}</td>
+                <td className="border px-2 py-1">{m.entry_name}</td>
+                <td className="border px-2 py-1">{m.event_total}</td>
+                <td className="border px-2 py-1">{m.total}</td>
+                <td className="border px-2 py-1">{m.rank}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      ) : (
-        <p style={{ marginTop: "2rem" }}>Loading leaderboard...</p>
-      )}
+      </div>
     </div>
   );
-};
+}
 
 export default App;
