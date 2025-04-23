@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import LeaderboardRow from "./components/LeaderboardRow";
 import LeaderboardHeader from "./components/LeaderboardHeader";
-import "./styles/App.css";
+import "./App.css";
 import { getChipIcon, getCaptainImageUrl } from "./utils/LeaderboardUtils";
 
 function App() {
