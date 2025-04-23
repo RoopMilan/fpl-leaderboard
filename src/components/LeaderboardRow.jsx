@@ -1,5 +1,5 @@
 import React from 'react';
-import { getChipIcon, getCaptainImageUrl } from './LeaderboardUtils';
+import { getChipIcon, getCaptainImageUrl } from "../utils/LeaderboardUtils";
 
 const LeaderboardRow = ({ manager }) => {
   const { name, totalPoints, chip, captainId, weeklyWins } = manager;
