@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
+import LeaderboardRow from "./components/LeaderboardRow";
+import LeaderboardHeader from "./components/LeaderboardHeader";
+import "./styles/App.css";
+import { getChipIcon, getCaptainImageUrl } from "./utils/LeaderboardUtils";
 
 function App() {
   const [eventId, setEventId] = useState(null);
   const [leagueData, setLeagueData] = useState([]);
+  const [elementsData, setElementsData] = useState([]);
+  const [weeklyWinners, setWeeklyWinners] = useState({});
   const [error, setError] = useState(null);
 
-  const miniLeagueId = 363676; // Replace with your real league ID
+  const miniLeagueId = 363676;
   const removedNames = ["Ashique Chowdhury", "Rifat Shahriar", "Ahmed Tazeem"];
 
   useEffect(() => {
@@ -13,6 +19,8 @@ function App() {
       try {
         const bootstrap = await fetch("/api/proxy?url=https%3A%2F%2Ffantasy.premierleague.com%2Fapi%2Fbootstrap-static%2F");
         const bootstrapData = await bootstrap.json();
+        setElementsData(bootstrapData.elements);
+
         const currentEvent = bootstrapData.events.find(e => e.is_current);
         if (currentEvent) {
           setEventId(currentEvent.id);
@@ -22,6 +30,15 @@ function App() {
         const league = await leagueRes.json();
         const cleanData = league.standings.results.filter(m => !removedNames.includes(m.player_name));
         setLeagueData(cleanData);
+
+        const highest = Math.max(...cleanData.map(m => m.event_total));
+        const wins = {};
+        cleanData.forEach(m => {
+          if (m.event_total === highest) {
+            wins[m.entry] = true;
+          }
+        });
+        setWeeklyWinners(wins);
       } catch (err) {
         console.error("Fetch failed:", err);
         setError("Failed to load leaderboard data.");
@@ -37,26 +54,20 @@ function App() {
       <p className="mb-6 text-muted-foreground">Current Gameweek: {eventId ?? "Loading..."}</p>
       {error && <p className="text-red-500">{error}</p>}
       <table className="table-auto w-full border-collapse border border-gray-300 text-left">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-2 py-1">#</th>
-            <th className="border px-2 py-1">Manager</th>
-            <th className="border px-2 py-1">Team</th>
-            <th className="border px-2 py-1">GW Points</th>
-            <th className="border px-2 py-1">Total</th>
-            <th className="border px-2 py-1">Rank</th>
-          </tr>
-        </thead>
+        <LeaderboardHeader />
         <tbody>
           {leagueData.map((m, idx) => (
-            <tr key={m.entry}>
-              <td className="border px-2 py-1">{idx + 1}</td>
-              <td className="border px-2 py-1">{m.player_name}</td>
-              <td className="border px-2 py-1">{m.entry_name}</td>
-              <td className="border px-2 py-1">{m.event_total}</td>
-              <td className="border px-2 py-1">{m.total}</td>
-              <td className="border px-2 py-1">{m.rank}</td>
-            </tr>
+            <LeaderboardRow
+              key={m.entry}
+              manager={{
+                id: m.entry,
+                name: m.player_name,
+                totalPoints: m.total,
+                chip: m.active_chip,
+                captainId: m.captain,
+                weeklyWins: weeklyWinners[m.entry] ? 1 : 0
+              }}
+            />
           ))}
         </tbody>
       </table>
